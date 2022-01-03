@@ -13,6 +13,7 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
+    console.log(file);
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif|doc|docx|pdf)$/)) {
       return cb(new Error("Please upload correct file format"));
     }

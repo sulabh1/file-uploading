@@ -1,45 +1,42 @@
 const Client = require("ftp");
-const fs = require("fs");
+const { connectFTP, readFile, putFile } = require("./utils");
 
 const c = new Client();
 
-const conn = () => {
-  c.connect({
-    host: "10.13.200.117",
-    port: 21,
-    user: "sulabh",
-    password: "password",
-  });
-};
+const supportedFileFormats = [
+  "pdf",
+  "jpg",
+  "jpeg",
+  "png",
+  "doc",
+  "docx",
+  "gif",
+];
 
-const ftpConfig = (file) => {
-  const files = file.match(/(docx|doc|pdf|jpeg|png|gif)/);
-
-  if (
-    files[1] === "pdf" ||
-    files[1] === "docx" ||
-    files[1] === "doc" ||
-    files[1] === "jpeg" ||
-    files[1] === "jpg" ||
-    files[1] === "png" ||
-    files[1] === "gif"
-  ) {
-    fileType = files[0];
-  } else {
-    throw new Error("file format is incorrect");
+const ftpConfig = async (filePath) => {
+  if (!filePath) {
+    throw new Error("file not found");
   }
+  const result = filePath.match(/(docx|doc|pdf|jpeg|png|gif|jpg)/);
 
-  conn();
-  c.on("ready", () => {
-    fs.readFile(file, (err, data) => {
-      c.put(data, `${Date.now()}.${fileType}`, (err) => {
-        if (!err) {
-          console.log("ok");
-        } else {
-          throw new Error(err.message);
-        }
-      });
+  if (supportedFileFormats.includes(result[0])) {
+    fileType = result[0];
+  } else {
+    throw new Error("file format is not supported");
+  }
+  try {
+    const client = await connectFTP({
+      host: "10.13.200.117",
+      port: 21,
+      user: "sulabh",
+      password: "password",
     });
-  });
+    const existingFile = await readFile(filePath);
+    await putFile(client, `${Date.now()}.${fileType}`, existingFile);
+
+    client.end();
+  } catch (error) {
+    throw error;
+  }
 };
 module.exports = ftpConfig;

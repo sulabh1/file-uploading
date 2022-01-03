@@ -9,15 +9,16 @@ app.use(express.json());
 
 app.post(
   "/file",
-  upload.single("files"),
-  (req, res, next) => {
-    const files = req.file.path;
+  upload.single("file"),
+  async (req, res, next) => {
+    const fileName = req.file.path;
+    // console.log(files);
 
-    ftpConfig(files);
+    await ftpConfig(fileName);
     res.status(201).json({
       status: "success",
       data: {
-        files,
+        fileName,
       },
     });
   },
